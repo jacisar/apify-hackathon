@@ -26,4 +26,10 @@ export default {
         // or specify e.g. "google/gemini-2.5-flash" for a concrete model
         model: 'openrouter/auto',
     },
+    cache: {
+        // Named KV store shared across runs — persists between actor invocations
+        kvStoreName: 'kidguard-cache',
+        // Records older than this are considered stale and will be re-fetched
+        maxAgeHours: 24,
+    },
 };
