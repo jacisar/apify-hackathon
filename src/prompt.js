@@ -1,3 +1,5 @@
+import config from './config.js';
+
 /**
  * KidGuard AI — Privacy Policy Auditor prompt.
  * Analyzes a privacy policy against 8 child-safety criteria and returns a structured JSON assessment.
@@ -6,6 +8,11 @@
  * @returns {string} Prompt text
  */
 export function buildScoringPrompt(app) {
+    const policyText = app.privacyPolicyContent
+        ? app.privacyPolicyContent.slice(0, config.openrouter.maxPolicyChars)
+        : null;
+    const truncated = app.privacyPolicyContent?.length > config.openrouter.maxPolicyChars;
+
     return `You are the Senior Privacy Auditor for KidGuard AI, specialized in children's digital safety and international data protection laws (COPPA, GDPR Article 8, and PIPEDA).
 
 Task: Analyze the provided privacy policy text to determine its safety for users under the age of 13. Evaluate the text against the 8 core criteria below and provide a standardized risk assessment.
@@ -29,8 +36,8 @@ App: ${app.title}
 Developer: ${app.developer}
 Privacy Policy URL: ${app.privacyPolicy ?? 'not available'}
 
-Privacy Policy Text:
-${app.privacyPolicyContent || '(Privacy policy text not available — base assessment on app metadata only and note the absence.)'}
+Privacy Policy Text${truncated ? ` (truncated to first ${config.openrouter.maxPolicyChars} characters)` : ''}:
+${policyText ?? '(Privacy policy text not available — base assessment on app metadata only and note the absence.)'}
 
 Return ONLY valid JSON with no markdown, no explanation, strictly this structure:
 {

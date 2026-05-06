@@ -54,6 +54,16 @@ export async function scoreApp(app, token) {
         });
 
         content = response.choices[0]?.message?.content ?? '';
+
+        const usage = response.usage;
+        log.info('LLM token usage', {
+            appId: app.appId,
+            model: response.model,
+            promptTokens: usage?.prompt_tokens,
+            completionTokens: usage?.completion_tokens,
+            totalTokens: usage?.total_tokens,
+        });
+
         const parsed = JSON.parse(content);
 
         return {
