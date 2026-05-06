@@ -19,7 +19,8 @@ await Actor.main(async () => {
     const { startUrls, includeReviews = false } = input;
     const client = new ApifyClient({ token });
 
-    const dataset = await Actor.openDataset(config.dataset.name);
+    const dataset = await Actor.openDataset(config.dataset.name, { forceCloud: true });
+    log.info('Using named dataset', { name: config.dataset.name, id: dataset.id });
 
     // epctex/google-play-scraper expects plain URL strings, not { url } objects
     const googlePlayUrls = startUrls.map((item) =>
