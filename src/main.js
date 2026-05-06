@@ -52,6 +52,9 @@ await Actor.main(async () => {
         return !appId || !cacheMap[appId];
     });
 
+    // Tracks appIds that had any step freshly executed — only these get pushed to dataset
+    const freshlyProcessed = new Set();
+
     const freshAppItems = [];
 
     if (urlsNeedingMetadata.length > 0) {
@@ -69,6 +72,7 @@ await Actor.main(async () => {
             .listItems({ clean: true });
 
         freshAppItems.push(...items);
+        items.forEach((item) => freshlyProcessed.add(item.appId));
         log.info('Retrieved fresh app records', { count: items.length });
     } else {
         log.info('All metadata cached — skipping Google Play scraper');
@@ -125,6 +129,15 @@ await Actor.main(async () => {
             }
         }
 
+        // Mark apps whose PP was freshly crawled
+        for (const app of allAppItems) {
+            if (app.privacyPolicy && policyContentMap[app.privacyPolicy] !== undefined) {
+                if (urlsNeedingCrawling.includes(app.privacyPolicy)) {
+                    freshlyProcessed.add(app.appId);
+                }
+            }
+        }
+
         log.info('Crawled pages', { count: crawledItems.length });
     } else {
         log.info('All privacy policy content cached — skipping content crawler');
@@ -165,6 +178,7 @@ await Actor.main(async () => {
                 scoringError: null,
             };
         } else {
+            freshlyProcessed.add(record.appId);
             try {
                 scoring = await scoreApp(record, token);
                 log.info('Scored app', { appId: record.appId, score: scoring.safetyScore });
@@ -187,8 +201,14 @@ await Actor.main(async () => {
         const fullRecord = { ...record, ...scoring, processedAt: new Date().toISOString() };
 
         await setCachedRecord(record.appId, { appMetadata: record, ...fullRecord });
-        await dataset.pushData(fullRecord);
+
+        if (freshlyProcessed.has(record.appId)) {
+            await dataset.pushData(fullRecord);
+        } else {
+            log.info('Fully cached — skipping dataset push', { appId: record.appId });
+        }
     }
 
-    log.info('Done', { totalRecords: enrichedRecords.length });
+    const pushedCount = enrichedRecords.filter((r) => freshlyProcessed.has(r.appId)).length;
+    log.info('Done', { totalRecords: enrichedRecords.length, pushedToDataset: pushedCount });
 });
