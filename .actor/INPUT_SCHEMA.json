@@ -1,0 +1,24 @@
+{
+    "title": "Google Play Privacy Policy Enricher",
+    "description": "Provide Google Play app URLs. The actor scrapes app metadata and enriches each record with the full text of the app's Privacy Policy.",
+    "type": "object",
+    "schemaVersion": 1,
+    "required": ["startUrls"],
+    "properties": {
+        "startUrls": {
+            "title": "Google Play URLs",
+            "description": "One or more Google Play app detail URLs (e.g. https://play.google.com/store/apps/details?id=org.khankids.android).",
+            "type": "array",
+            "editor": "requestListSources",
+            "prefill": [
+                { "url": "https://play.google.com/store/apps/details?id=org.khankids.android" }
+            ]
+        },
+        "includeReviews": {
+            "title": "Include reviews",
+            "description": "Whether to include user reviews in the output. Increases run time and cost proportionally.",
+            "type": "boolean",
+            "default": false
+        }
+    }
+}

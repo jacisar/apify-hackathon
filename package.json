@@ -1,0 +1,15 @@
+{
+    "name": "google-play-privacy-enricher",
+    "version": "0.1.0",
+    "type": "module",
+    "description": "Scrapes Google Play app metadata and enriches it with crawled Privacy Policy content.",
+    "main": "src/main.js",
+    "scripts": {
+        "start": "node src/main.js",
+        "start:dev": "node --env-file=.env src/main.js"
+    },
+    "dependencies": {
+        "apify": "^3.2.0",
+        "apify-client": "^2.9.0"
+    }
+}

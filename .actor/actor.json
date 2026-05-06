@@ -1,0 +1,31 @@
+{
+    "actorSpecification": 1,
+    "name": "google-play-privacy-enricher",
+    "title": "Google Play Privacy Policy Enricher",
+    "description": "Scrapes Google Play app metadata and enriches each record with the full text of the app's Privacy Policy, crawled via website-content-crawler.",
+    "version": "0.1",
+    "storages": {
+        "dataset": {
+            "actorSpecification": 1,
+            "views": {
+                "overview": {
+                    "title": "Results",
+                    "transformation": {
+                        "fields": [
+                            "title",
+                            "appId",
+                            "developer",
+                            "score",
+                            "installs",
+                            "privacyPolicy",
+                            "privacyPolicyContent",
+                            "termsOfServiceUrl",
+                            "termsOfServiceContent"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "input": "./INPUT_SCHEMA.json"
+}
