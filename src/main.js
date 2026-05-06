@@ -165,8 +165,23 @@ await Actor.main(async () => {
                 scoringError: null,
             };
         } else {
-            scoring = await scoreApp(record, token);
-            log.info('Scored app', { appId: record.appId, score: scoring.safetyScore });
+            try {
+                scoring = await scoreApp(record, token);
+                log.info('Scored app', { appId: record.appId, score: scoring.safetyScore });
+            } catch (err) {
+                log.error('Unexpected scoring error — storing record without score', {
+                    appId: record.appId,
+                    error: err.message,
+                });
+                scoring = {
+                    safetyScore: null,
+                    trafficLight: null,
+                    criteria: null,
+                    highPriorityFlags: [],
+                    parentSummary: null,
+                    scoringError: err.message,
+                };
+            }
         }
 
         const fullRecord = { ...record, ...scoring, processedAt: new Date().toISOString() };

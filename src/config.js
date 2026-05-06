@@ -23,7 +23,7 @@ export default {
         // apify/openrouter actor in standby mode — billed via Apify credits, no external API key needed
         baseUrl: 'https://openrouter.apify.actor/api/v1',
         // Cheap, fast model with large context — avoid openrouter/auto which may pick expensive models
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'google/gemini-2.5-flash',
         // Max characters of privacy policy text sent to LLM (~12k chars ≈ 3k tokens)
         // Full policies can be 50k+ chars — truncating prevents runaway costs
         maxPolicyChars: 12_000,
