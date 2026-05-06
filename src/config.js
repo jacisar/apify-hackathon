@@ -5,6 +5,8 @@ export default {
     },
     googlePlay: {
         proxy: { useApifyProxy: true },
+        // HTTP-only scraper, does not need much memory
+        memoryMbytes: 512,
     },
     crawler: {
         // Only crawl the exact start URL, do not follow links
@@ -14,5 +16,7 @@ export default {
         saveMarkdown: true,
         blockMedia: true,
         proxyConfiguration: { useApifyProxy: true },
+        // Playwright needs more memory than a plain HTTP scraper
+        memoryMbytes: 1024,
     },
 };

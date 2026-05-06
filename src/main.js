@@ -25,11 +25,10 @@ await Actor.main(async () => {
     // --- Step 1: Scrape Google Play app metadata ---
     log.info('Starting Google Play scraper', { urlCount: googlePlayUrls.length });
 
-    const googlePlayRun = await client.actor(config.actors.googlePlay).call({
-        startUrls: googlePlayUrls,
-        includeReviews,
-        proxy: config.googlePlay.proxy,
-    });
+    const googlePlayRun = await client.actor(config.actors.googlePlay).call(
+        { startUrls: googlePlayUrls, includeReviews, proxy: config.googlePlay.proxy },
+        { memory: config.googlePlay.memoryMbytes },
+    );
 
     log.info('Google Play scraper finished', { runId: googlePlayRun.id, status: googlePlayRun.status });
 
@@ -59,10 +58,11 @@ await Actor.main(async () => {
     if (uniquePolicyUrls.length > 0) {
         log.info('Starting content crawler for privacy policies');
 
-        const crawlerRun = await client.actor(config.actors.contentCrawler).call({
-            startUrls: uniquePolicyUrls.map((url) => ({ url })),
-            ...config.crawler,
-        });
+        const { memoryMbytes, ...crawlerInput } = config.crawler;
+        const crawlerRun = await client.actor(config.actors.contentCrawler).call(
+            { startUrls: uniquePolicyUrls.map((url) => ({ url })), ...crawlerInput },
+            { memory: memoryMbytes },
+        );
 
         log.info('Content crawler finished', { runId: crawlerRun.id, status: crawlerRun.status });
 
