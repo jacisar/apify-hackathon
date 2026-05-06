@@ -21,7 +21,8 @@ export default {
     },
     openrouter: {
         // apify/openrouter actor in standby mode — billed via Apify credits, no external API key needed
-        baseUrl: 'https://apify--openrouter.apify.actor/v1',
+        // baseURL without /v1 — openai SDK appends /chat/completions directly
+        baseUrl: 'https://apify--openrouter.apify.actor',
         model: 'google/gemini-flash-2.0',
     },
 };
