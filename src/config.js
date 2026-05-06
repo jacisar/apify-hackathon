@@ -11,13 +11,13 @@ export default {
     crawler: {
         // Only crawl the exact start URL, do not follow links
         maxCrawlDepth: 0,
-        // Adaptive mode: fast for static pages, browser for JS-rendered
-        crawlerType: 'playwright:adaptive',
+        // cheerio = pure HTTP, no browser — privacy policies are static HTML
+        // Uses ~100MB vs ~800MB for playwright, eliminates OOM on 1024MB runs
+        crawlerType: 'cheerio',
         saveMarkdown: true,
         blockMedia: true,
         proxyConfiguration: { useApifyProxy: true },
-        // Playwright needs more memory than a plain HTTP scraper
-        memoryMbytes: 1024,
+        memoryMbytes: 512,
     },
     openrouter: {
         // apify/openrouter actor in standby mode — billed via Apify credits, no external API key needed
