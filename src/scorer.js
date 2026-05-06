@@ -4,11 +4,28 @@ import { buildScoringPrompt } from './prompt.js';
 import config from './config.js';
 
 /**
+ * @typedef {Object} CriterionResult
+ * @property {"Pass"|"Partial"|"Fail"} status
+ * @property {number} score
+ * @property {string} observation
+ */
+
+/**
+ * @typedef {Object} ScoringResult
+ * @property {number|null} safetyScore       - Overall score 1-10
+ * @property {"green"|"yellow"|"red"|null} trafficLight
+ * @property {Object.<string, CriterionResult>|null} criteria
+ * @property {string[]} highPriorityFlags
+ * @property {string|null} parentSummary
+ * @property {string|null} scoringError      - Set if LLM call or parse failed
+ */
+
+/**
  * Calls the LLM via apify/openrouter to score an app's privacy policy.
  *
  * @param {object} app - Enriched app record (includes privacyPolicyContent)
  * @param {string} token - Apify token used for apify/openrouter authentication
- * @returns {Promise<{score: number|null}>}
+ * @returns {Promise<ScoringResult>}
  */
 export async function scoreApp(app, token) {
     const openai = new OpenAI({
@@ -20,20 +37,35 @@ export async function scoreApp(app, token) {
         },
     });
 
-    const prompt = buildScoringPrompt(app);
+    const emptyResult = {
+        safetyScore: null,
+        trafficLight: null,
+        criteria: null,
+        highPriorityFlags: [],
+        parentSummary: null,
+    };
 
-    const response = await openai.chat.completions.create({
-        model: config.openrouter.model,
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' },
-    });
-
-    const content = response.choices[0]?.message?.content ?? '';
-
+    let content = '';
     try {
-        return JSON.parse(content);
-    } catch {
-        log.warning('Failed to parse LLM scoring response', { content, appId: app.appId });
-        return { score: null };
+        const response = await openai.chat.completions.create({
+            model: config.openrouter.model,
+            messages: [{ role: 'user', content: buildScoringPrompt(app) }],
+            response_format: { type: 'json_object' },
+        });
+
+        content = response.choices[0]?.message?.content ?? '';
+        const parsed = JSON.parse(content);
+
+        return {
+            safetyScore: parsed.safetyScore ?? null,
+            trafficLight: parsed.trafficLight ?? null,
+            criteria: parsed.criteria ?? null,
+            highPriorityFlags: parsed.highPriorityFlags ?? [],
+            parentSummary: parsed.parentSummary ?? null,
+            scoringError: null,
+        };
+    } catch (err) {
+        log.warning('LLM scoring failed', { appId: app.appId, error: err.message, content });
+        return { ...emptyResult, scoringError: err.message };
     }
 }
