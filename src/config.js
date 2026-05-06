@@ -22,6 +22,8 @@ export default {
     openrouter: {
         // apify/openrouter actor in standby mode — billed via Apify credits, no external API key needed
         baseUrl: 'https://openrouter.apify.actor/api/v1',
-        model: 'google/gemini-2.0-flash',
+        // Use openrouter/auto to let OpenRouter pick the best available model,
+        // or specify e.g. "google/gemini-2.5-flash" for a concrete model
+        model: 'openrouter/auto',
     },
 };
