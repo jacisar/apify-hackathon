@@ -157,12 +157,15 @@ await Actor.main(async () => {
     }));
 
     // -------------------------------------------------------------------------
-    // Step 4: Score apps — use cache when a non-null safetyScore is present;
-    // re-score if the previous attempt failed (scoringError set, score null)
+    // Step 4: Score apps in parallel — concurrency limited to avoid rate limits
+    // use cache when a non-null safetyScore is present; re-score on prior failure
     // -------------------------------------------------------------------------
-    log.info('Scoring apps', { count: enrichedRecords.length });
+    log.info('Scoring apps', {
+        count: enrichedRecords.length,
+        concurrency: config.openrouter.scoringConcurrency,
+    });
 
-    for (const record of enrichedRecords) {
+    const scoreOne = async (record) => {
         const cached = cacheMap[record.appId];
         const hasCachedScore = cached?.safetyScore != null;
 
@@ -199,7 +202,6 @@ await Actor.main(async () => {
         }
 
         const fullRecord = { ...record, ...scoring, processedAt: new Date().toISOString() };
-
         await setCachedRecord(record.appId, { appMetadata: record, ...fullRecord });
 
         if (freshlyProcessed.has(record.appId)) {
@@ -207,6 +209,12 @@ await Actor.main(async () => {
         } else {
             log.info('Fully cached — skipping dataset push', { appId: record.appId });
         }
+    };
+
+    // Run scoring in parallel batches of scoringConcurrency
+    const concurrency = config.openrouter.scoringConcurrency;
+    for (let i = 0; i < enrichedRecords.length; i += concurrency) {
+        await Promise.all(enrichedRecords.slice(i, i + concurrency).map(scoreOne));
     }
 
     const pushedCount = enrichedRecords.filter((r) => freshlyProcessed.has(r.appId)).length;

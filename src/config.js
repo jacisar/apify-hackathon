@@ -27,6 +27,8 @@ export default {
         // Max characters of privacy policy text sent to LLM (~12k chars ≈ 3k tokens)
         // Full policies can be 50k+ chars — truncating prevents runaway costs
         maxPolicyChars: 12_000,
+        // Max parallel LLM calls — higher = faster but risks rate limiting
+        scoringConcurrency: 5,
     },
     cache: {
         // Named KV store shared across runs — persists between actor invocations
