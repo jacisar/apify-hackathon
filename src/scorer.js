@@ -13,7 +13,11 @@ import config from './config.js';
 export async function scoreApp(app, token) {
     const openai = new OpenAI({
         baseURL: config.openrouter.baseUrl,
-        apiKey: token,
+        // apiKey must be non-empty but auth is handled via Authorization header
+        apiKey: 'apify',
+        defaultHeaders: {
+            Authorization: `Bearer ${token}`,
+        },
     });
 
     const prompt = buildScoringPrompt(app);
