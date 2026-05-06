@@ -32,4 +32,8 @@ export default {
         // Records older than this are considered stale and will be re-fetched
         maxAgeHours: 24,
     },
+    dataset: {
+        // Named dataset — persists across runs, visible in Apify console under Storage
+        name: 'kidguard-results',
+    },
 };

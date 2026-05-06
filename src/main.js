@@ -19,6 +19,8 @@ await Actor.main(async () => {
     const { startUrls, includeReviews = false } = input;
     const client = new ApifyClient({ token });
 
+    const dataset = await Actor.openDataset(config.dataset.name);
+
     // epctex/google-play-scraper expects plain URL strings, not { url } objects
     const googlePlayUrls = startUrls.map((item) =>
         typeof item === 'string' ? item : item.url,
@@ -169,7 +171,7 @@ await Actor.main(async () => {
         const fullRecord = { ...record, ...scoring, processedAt: new Date().toISOString() };
 
         await setCachedRecord(record.appId, { appMetadata: record, ...fullRecord });
-        await Actor.pushData(fullRecord);
+        await dataset.pushData(fullRecord);
     }
 
     log.info('Done', { totalRecords: enrichedRecords.length });
