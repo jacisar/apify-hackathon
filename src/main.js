@@ -1,6 +1,7 @@
 import { Actor, log } from 'apify';
 import { ApifyClient } from 'apify-client';
 import config from './config.js';
+import { scoreApp } from './scorer.js';
 
 await Actor.main(async () => {
     const input = await Actor.getInput();
@@ -79,21 +80,26 @@ await Actor.main(async () => {
         }
     }
 
-    // --- Step 4: Merge crawled content into app records and push to dataset ---
-    log.info('Pushing enriched records to dataset');
+    // --- Step 4: Build enriched records ---
+    const enrichedRecords = appItems.map((app) => ({
+        ...app,
+        privacyPolicyContent: app.privacyPolicy
+            ? (policyContentMap[app.privacyPolicy] ?? '')
+            : '',
+        // termsOfServiceUrl and termsOfServiceContent are not provided by the
+        // google-play-scraper actor; fields are included for schema consistency.
+        termsOfServiceUrl: null,
+        termsOfServiceContent: '',
+    }));
 
-    for (const app of appItems) {
-        await Actor.pushData({
-            ...app,
-            privacyPolicyContent: app.privacyPolicy
-                ? (policyContentMap[app.privacyPolicy] ?? '')
-                : '',
-            // termsOfServiceUrl and termsOfServiceContent are not provided by the
-            // google-play-scraper actor; fields are included for schema consistency.
-            termsOfServiceUrl: null,
-            termsOfServiceContent: '',
-        });
+    // --- Step 5: Score each app via LLM (apify/openrouter, billed via Apify credits) ---
+    log.info('Scoring apps via LLM', { count: enrichedRecords.length });
+
+    for (const record of enrichedRecords) {
+        const scoring = await scoreApp(record, token);
+        log.info('Scored app', { appId: record.appId, score: scoring.score });
+        await Actor.pushData({ ...record, ...scoring });
     }
 
-    log.info('Done', { totalRecords: appItems.length });
+    log.info('Done', { totalRecords: enrichedRecords.length });
 });

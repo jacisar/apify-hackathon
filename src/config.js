@@ -19,4 +19,9 @@ export default {
         // Playwright needs more memory than a plain HTTP scraper
         memoryMbytes: 1024,
     },
+    openrouter: {
+        // apify/openrouter actor in standby mode — billed via Apify credits, no external API key needed
+        baseUrl: 'https://apify--openrouter.apify.actor/v1',
+        model: 'google/gemini-flash-2.0',
+    },
 };
